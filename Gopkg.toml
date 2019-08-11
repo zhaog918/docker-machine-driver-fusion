@@ -24,6 +24,7 @@
 #   go-tests = true
 #   unused-packages = true
 
+ignored = ["github.com/zhaog918/docker-machine-driver-fusion"]
 
 [[constraint]]
   name = "github.com/docker/machine"

@@ -62,49 +62,49 @@ const (
 func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 	return []mcnflag.Flag{
 		mcnflag.StringFlag{
-			EnvVar: "FUSION_BOOT2DOCKER_URL",
+			EnvVar: "VMFUSION_BOOT2DOCKER_URL",
 			Name:   "fusion-boot2docker-url",
 			Usage:  "Fusion URL for boot2docker image",
 			Value:  "",
 		},
 		mcnflag.StringFlag{
-			EnvVar: "FUSION_CONFIGDRIVE_URL",
+			EnvVar: "VMFUSION_CONFIGDRIVE_URL",
 			Name:   "fusion-configdrive-url",
 			Usage:  "Fusion URL for cloud-init configdrive",
 			Value:  "",
 		},
 		mcnflag.IntFlag{
-			EnvVar: "FUSION_CPU_COUNT",
+			EnvVar: "VMFUSION_CPU_COUNT",
 			Name:   "fusion-cpu-count",
 			Usage:  "number of CPUs for the machine (-1 to use the number of CPUs available)",
 			Value:  defaultCPU,
 		},
 		mcnflag.IntFlag{
-			EnvVar: "FUSION_MEMORY_SIZE",
+			EnvVar: "VMFUSION_MEMORY_SIZE",
 			Name:   "fusion-memory-size",
 			Usage:  "Fusion size of memory for host VM (in MB)",
 			Value:  defaultMemory,
 		},
 		mcnflag.IntFlag{
-			EnvVar: "FUSION_DISK_SIZE",
+			EnvVar: "VMFUSION_DISK_SIZE",
 			Name:   "fusion-disk-size",
 			Usage:  "Fusion size of disk for host VM (in MB)",
 			Value:  defaultDiskSize,
 		},
 		mcnflag.StringFlag{
-			EnvVar: "FUSION_SSH_USER",
+			EnvVar: "VMFUSION_SSH_USER",
 			Name:   "fusion-ssh-user",
 			Usage:  "SSH user",
 			Value:  defaultSSHUser,
 		},
 		mcnflag.StringFlag{
-			EnvVar: "FUSION_SSH_PASSWORD",
+			EnvVar: "VMFUSION_SSH_PASSWORD",
 			Name:   "fusion-ssh-password",
 			Usage:  "SSH password",
 			Value:  defaultSSHPass,
 		},
 		mcnflag.BoolFlag{
-			EnvVar: "FUSION_NO_SHARE",
+			EnvVar: "VMFUSION_NO_SHARE",
 			Name:   "fusion-no-share",
 			Usage:  "Disable the mount of your home directory",
 		},
