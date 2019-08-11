@@ -18,9 +18,9 @@ package main
 
 import (
 	"github.com/docker/machine/libmachine/drivers/plugin"
-	"github.com/zhaog918/docker-machine-driver-vmwarefusion/drivers/vmwarefusion"
+	"github.com/zhaog918/docker-machine-driver-vmwarefusion/drivers/fusion"
 )
 
 func main() {
-	plugin.RegisterDriver(vmwarefusion.NewDriver("", ""))
+	plugin.RegisterDriver(fusion.NewDriver("", ""))
 }

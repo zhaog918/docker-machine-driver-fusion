@@ -1,4 +1,4 @@
-package vmwarefusion
+package fusion
 
 import (
 	"testing"

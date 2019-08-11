@@ -1,6 +1,6 @@
 // +build !darwin
 
-package vmwarefusion
+package fusion
 
 import "github.com/docker/machine/libmachine/drivers"
 
