@@ -4,7 +4,7 @@
 # for detailed Gopkg.toml documentation.
 #
 # required = ["github.com/user/thing/cmd/thing"]
-# ignored = ["github.com/user/project/pkgX", "bitbucket.org/user/project/pkgA/pkgY"]
+# ignored = ["github.com/user/project/pkgX", "bitbucket.org/user/project/pkgA/pkgY","github.com/zhaog918/docker-machine-driver-fusion"]
 #
 # [[constraint]]
 #   name = "github.com/user/project"
@@ -32,10 +32,6 @@
 [[constraint]]
   name = "github.com/stretchr/testify"
   version = "1.3.0"
-
-[[constraint]]
-  branch = "master"
-  name = "github.com/zhaog918/docker-machine-driver-vmwarefusion"
 
 [[constraint]]
   branch = "master"
