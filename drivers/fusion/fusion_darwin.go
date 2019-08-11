@@ -63,49 +63,49 @@ func (d *Driver) GetCreateFlags() []mcnflag.Flag {
 	return []mcnflag.Flag{
 		mcnflag.StringFlag{
 			EnvVar: "FUSION_BOOT2DOCKER_URL",
-			Name:   "vmwarefusion-boot2docker-url",
+			Name:   "fusion-boot2docker-url",
 			Usage:  "Fusion URL for boot2docker image",
 			Value:  "",
 		},
 		mcnflag.StringFlag{
 			EnvVar: "FUSION_CONFIGDRIVE_URL",
-			Name:   "vmwarefusion-configdrive-url",
+			Name:   "fusion-configdrive-url",
 			Usage:  "Fusion URL for cloud-init configdrive",
 			Value:  "",
 		},
 		mcnflag.IntFlag{
 			EnvVar: "FUSION_CPU_COUNT",
-			Name:   "vmwarefusion-cpu-count",
+			Name:   "fusion-cpu-count",
 			Usage:  "number of CPUs for the machine (-1 to use the number of CPUs available)",
 			Value:  defaultCPU,
 		},
 		mcnflag.IntFlag{
 			EnvVar: "FUSION_MEMORY_SIZE",
-			Name:   "vmwarefusion-memory-size",
+			Name:   "fusion-memory-size",
 			Usage:  "Fusion size of memory for host VM (in MB)",
 			Value:  defaultMemory,
 		},
 		mcnflag.IntFlag{
 			EnvVar: "FUSION_DISK_SIZE",
-			Name:   "vmwarefusion-disk-size",
+			Name:   "fusion-disk-size",
 			Usage:  "Fusion size of disk for host VM (in MB)",
 			Value:  defaultDiskSize,
 		},
 		mcnflag.StringFlag{
 			EnvVar: "FUSION_SSH_USER",
-			Name:   "vmwarefusion-ssh-user",
+			Name:   "fusion-ssh-user",
 			Usage:  "SSH user",
 			Value:  defaultSSHUser,
 		},
 		mcnflag.StringFlag{
 			EnvVar: "FUSION_SSH_PASSWORD",
-			Name:   "vmwarefusion-ssh-password",
+			Name:   "fusion-ssh-password",
 			Usage:  "SSH password",
 			Value:  defaultSSHPass,
 		},
 		mcnflag.BoolFlag{
 			EnvVar: "FUSION_NO_SHARE",
-			Name:   "vmwarefusion-no-share",
+			Name:   "fusion-no-share",
 			Usage:  "Disable the mount of your home directory",
 		},
 	}
@@ -139,22 +139,22 @@ func (d *Driver) GetSSHUsername() string {
 
 // DriverName returns the name of the driver
 func (d *Driver) DriverName() string {
-	return "vmwarefusion"
+	return "fusion"
 }
 
 func (d *Driver) SetConfigFromFlags(flags drivers.DriverOptions) error {
-	d.Memory = flags.Int("vmwarefusion-memory-size")
-	d.CPU = flags.Int("vmwarefusion-cpu-count")
-	d.DiskSize = flags.Int("vmwarefusion-disk-size")
-	d.Boot2DockerURL = flags.String("vmwarefusion-boot2docker-url")
-	d.ConfigDriveURL = flags.String("vmwarefusion-configdrive-url")
+	d.Memory = flags.Int("fusion-memory-size")
+	d.CPU = flags.Int("fusion-cpu-count")
+	d.DiskSize = flags.Int("fusion-disk-size")
+	d.Boot2DockerURL = flags.String("fusion-boot2docker-url")
+	d.ConfigDriveURL = flags.String("fusion-configdrive-url")
 	d.ISO = d.ResolveStorePath(isoFilename)
 	d.ConfigDriveISO = d.ResolveStorePath(isoConfigDrive)
 	d.SetSwarmConfigFromFlags(flags)
-	d.SSHUser = flags.String("vmwarefusion-ssh-user")
-	d.SSHPassword = flags.String("vmwarefusion-ssh-password")
+	d.SSHUser = flags.String("fusion-ssh-user")
+	d.SSHPassword = flags.String("fusion-ssh-password")
 	d.SSHPort = 22
-	d.NoShare = flags.Bool("vmwarefusion-no-share")
+	d.NoShare = flags.Bool("fusion-no-share")
 
 	// We support a maximum of 16 cpu to be consistent with Virtual Hardware 10
 	// specs.

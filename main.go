@@ -18,7 +18,7 @@ package main
 
 import (
 	"github.com/docker/machine/libmachine/drivers/plugin"
-	"github.com/zhaog918/docker-machine-driver-vmwarefusion/drivers/fusion"
+	"github.com/zhaog918/docker-machine-driver-fusion/drivers/fusion"
 )
 
 func main() {

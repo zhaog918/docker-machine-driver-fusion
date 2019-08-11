@@ -1,5 +1,5 @@
 OUT_DIR := out
-PROG := docker-machine-driver-vmwarefusion
+PROG := docker-machine-driver-fusion
 
 GOOS ?= $(shell go env GOOS)
 GOARCH ?= $(shell go env GOARCH)
