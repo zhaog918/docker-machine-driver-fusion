@@ -8,7 +8,9 @@ to be installed on your host. Earlier versions of Fusion might still work
 with this driver, but it's not officially supported.
 
 > **The main difference is:**
+
 > Extracted from docker-machine project
+
 > Added dual-network card function , separates public and private networks
 
 ## Installation
