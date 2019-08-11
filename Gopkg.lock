@@ -86,10 +86,10 @@
 [[projects]]
   branch = "master"
   digest = "1:2ea2e4f68f5aabac1e3026fc293d7248e084c66d4e094de70ae23852745425f6"
-  name = "github.com/zhaog918/docker-machine-driver-vmwarefusion"
+  name = "github.com/zhaog918/docker-machine-driver-fusion"
   packages = ["drivers/fusion"]
   pruneopts = "UT"
-  revision = "98c5fa6bf655d026ff531612a7b23840128767f0"
+  revision = "2a31c2af2ea2742c787e3911d4bcfb9e47b2e003"
 
 [[projects]]
   branch = "master"
@@ -132,7 +132,7 @@
     "github.com/docker/machine/libmachine/ssh",
     "github.com/docker/machine/libmachine/state",
     "github.com/stretchr/testify/assert",
-    "github.com/zhaog918/docker-machine-driver-vmwarefusion/drivers/fusion",
+    "github.com/zhaog918/docker-machine-driver-fusion/drivers/fusion",
     "golang.org/x/crypto/ssh",
   ]
   solver-name = "gps-cdcl"
