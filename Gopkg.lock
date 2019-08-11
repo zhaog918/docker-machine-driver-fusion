@@ -29,7 +29,7 @@
     "pkg/term/windows",
   ]
   pruneopts = "UT"
-  revision = "901d30b6b4b7f2ceaf289e4fc88d01d8d281520b"
+  revision = "90af4ba5e7fa5a75387a06f8987c30217f05d618"
 
 [[projects]]
   digest = "1:9377674d33e2408feb2a3566d5463b2d5f65b3cb0c939d6ae19ba37fe4d4d9cf"
@@ -85,11 +85,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:2ea2e4f68f5aabac1e3026fc293d7248e084c66d4e094de70ae23852745425f6"
+  digest = "1:76eecb64709c36a77d7a2d60260cef356da121a25d3bbc530b2e006f0200e6fa"
   name = "github.com/zhaog918/docker-machine-driver-fusion"
   packages = ["drivers/fusion"]
   pruneopts = "UT"
-  revision = "2a31c2af2ea2742c787e3911d4bcfb9e47b2e003"
+  revision = "2edf53ebb17a192b49eb3afec95322d191f2acd1"
 
 [[projects]]
   branch = "master"

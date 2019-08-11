@@ -4,7 +4,7 @@
 # for detailed Gopkg.toml documentation.
 #
 # required = ["github.com/user/thing/cmd/thing"]
-# ignored = ["github.com/user/project/pkgX", "bitbucket.org/user/project/pkgA/pkgY","github.com/zhaog918/docker-machine-driver-fusion"]
+# ignored = ["github.com/user/project/pkgX", "bitbucket.org/user/project/pkgA/pkgY"]
 #
 # [[constraint]]
 #   name = "github.com/user/project"
@@ -24,7 +24,6 @@
 #   go-tests = true
 #   unused-packages = true
 
-ignored = ["github.com/zhaog918/docker-machine-driver-fusion"]
 
 [[constraint]]
   name = "github.com/docker/machine"
@@ -33,6 +32,10 @@ ignored = ["github.com/zhaog918/docker-machine-driver-fusion"]
 [[constraint]]
   name = "github.com/stretchr/testify"
   version = "1.3.0"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/zhaog918/docker-machine-driver-fusion"
 
 [[constraint]]
   branch = "master"
