@@ -7,7 +7,9 @@ This driver requires VMware VMware Fusion 10 (MacOS)
 to be installed on your host. Earlier versions of Fusion might still work
 with this driver, but it's not officially supported.
 
-> The main difference is that two NIC are supported.
+> **The main difference is:**
+> Extracted from docker-machine project
+> Added dual-network card function , separates public and private networks
 
 ## Installation
 
