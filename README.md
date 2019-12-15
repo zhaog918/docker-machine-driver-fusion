@@ -30,7 +30,7 @@ For Windows, make sure `%GOPATH%\bin` is included in `%PATH%`.
 Run the following command:
 
 ```shell
-go get -u https://github.com/zhaog918/docker-machine-driver-fusion
+go get -u github.com/zhaog918/docker-machine-driver-fusion
 ```
 
 
