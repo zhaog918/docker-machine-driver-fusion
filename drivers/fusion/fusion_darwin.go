@@ -368,31 +368,31 @@ func (d *Driver) Create() error {
 
 	// mkdir /var/lib/boot2docker
 	log.Debugf("mkdir /var/lib/boot2docker...")
-	_, _, err = vmrun("-gu", B2DUser, "-gp", B2DPass, "runScriptInGuest", d.vmxPath(), "/bin/sh", "sudo sh -c \"mkdir -p /var/lib/boot2docker > /var/log/userdata.log 2>&1 \"")
+	_, _, err = vmrun("-gu", d.SSHUser, "-gp", d.SSHPassword, "runScriptInGuest", d.vmxPath(), "/bin/sh", "sudo sh -c \"mkdir -p /var/lib/boot2docker > /var/log/userdata.log 2>&1 \"")
 	if err != nil {
 		return err
 	}
 
 	// Copy SSH keys bundle
-	_, _, err = vmrun("-gu", B2DUser, "-gp", B2DPass, "CopyFileFromHostToGuest", d.vmxPath(), d.ResolveStorePath("userdata.tar"), "/home/docker/userdata.tar")
+	_, _, err = vmrun("-gu", d.SSHUser, "-gp", d.SSHPassword, "CopyFileFromHostToGuest", d.vmxPath(), d.ResolveStorePath("userdata.tar"), fmt.Sprintf("/home/%s/userdata.tar", d.SSHUser))
 	if err != nil {
 		return err
 	}
 
 	// Expand tar file.tar --warning=no-timestamp
-	_, _, err = vmrun("-gu", B2DUser, "-gp", B2DPass, "runScriptInGuest", d.vmxPath(), "/bin/sh", "sudo sh -c \"tar xvf /home/docker/userdata.tar -C /home/docker --warning=no-timestamp > /var/log/userdata.log 2>&1 && chown -R docker:staff /home/docker\"")
+	_, _, err = vmrun("-gu", d.SSHUser, "-gp", d.SSHPassword, "runScriptInGuest", d.vmxPath(), "/bin/sh", fmt.Sprintf("sudo sh -c \"tar xvf /home/%s/userdata.tar -C /home/%s --warning=no-timestamp > /var/log/userdata.log 2>&1 && chown -R %s:staff /home/%s\"", d.SSHUser, d.SSHUser, d.SSHUser, d.SSHUser))
 	if err != nil {
 		return err
 	}
 
 	// copy to /var/lib/boot2docker
-	_, _, err = vmrun("-gu", B2DUser, "-gp", B2DPass, "runScriptInGuest", d.vmxPath(), "/bin/sh", "sudo /bin/mv /home/docker/userdata.tar /var/lib/boot2docker/userdata.tar")
+	_, _, err = vmrun("-gu", d.SSHUser, "-gp", d.SSHPassword, "runScriptInGuest", d.vmxPath(), "/bin/sh", fmt.Sprintf("sudo /bin/mv /home/%s/userdata.tar /var/lib/boot2docker/userdata.tar", d.SSHUser))
 	if err != nil {
 		return err
 	}
 
 	// Enable Shared Folders
-	_, _, err = vmrun("-gu", B2DUser, "-gp", B2DPass, "enableSharedFolders", d.vmxPath())
+	_, _, err = vmrun("-gu", d.SSHUser, "-gp", d.SSHPassword, "enableSharedFolders", d.vmxPath())
 	if err != nil {
 		return err
 	}
@@ -410,12 +410,12 @@ func (d *Driver) Create() error {
 			return err
 		} else if !os.IsNotExist(err) {
 			// add shared folder, create mountpoint and mount it.
-			_, _, err = vmrun("-gu", B2DUser, "-gp", B2DPass, "addSharedFolder", d.vmxPath(), shareName, shareDir)
+			_, _, err = vmrun("-gu", d.SSHUser, "-gp", d.SSHPassword, "addSharedFolder", d.vmxPath(), shareName, shareDir)
 			if err != nil {
 				return err
 			}
 			command := "([ ! -d " + shareDir + " ]&& sudo mkdir " + shareDir + "; sudo mount --bind /mnt/hgfs/" + shareDir + " " + shareDir + ") || ([ -f /usr/local/bin/vmhgfs-fuse ]&& sudo /usr/local/bin/vmhgfs-fuse -o allow_other .host:/" + shareName + " " + shareDir + ") || sudo mount -t vmhgfs -o uid=$(id -u),gid=$(id -g) .host:/" + shareName + " " + shareDir
-			_, _, err = vmrun("-gu", B2DUser, "-gp", B2DPass, "runScriptInGuest", d.vmxPath(), "/bin/sh", command)
+			_, _, err = vmrun("-gu", d.SSHUser, "-gp", d.SSHPassword, "runScriptInGuest", d.vmxPath(), "/bin/sh", command)
 			if err != nil {
 				return err
 			}
@@ -448,7 +448,7 @@ func (d *Driver) Start() error {
 		} else if !os.IsNotExist(err) {
 			// create mountpoint and mount shared folder
 			command := "([ ! -d " + shareDir + " ]&& sudo mkdir " + shareDir + "; sudo mount --bind /mnt/hgfs/" + shareDir + " " + shareDir + ") || ([ -f /usr/local/bin/vmhgfs-fuse ]&& sudo /usr/local/bin/vmhgfs-fuse -o allow_other .host:/" + shareName + " " + shareDir + ") || sudo mount -t vmhgfs -o uid=$(id -u),gid=$(id -g) .host:/" + shareName + " " + shareDir
-			vmrun("-gu", B2DUser, "-gp", B2DPass, "runScriptInGuest", d.vmxPath(), "/bin/sh", command)
+			vmrun("-gu", d.SSHUser, "-gp", d.SSHPassword, "runScriptInGuest", d.vmxPath(), "/bin/sh", command)
 		}
 	}
 
