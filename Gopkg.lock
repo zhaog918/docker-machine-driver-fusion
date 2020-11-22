@@ -85,14 +85,6 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:76eecb64709c36a77d7a2d60260cef356da121a25d3bbc530b2e006f0200e6fa"
-  name = "github.com/zhaog918/docker-machine-driver-fusion"
-  packages = ["drivers/fusion"]
-  pruneopts = "UT"
-  revision = "2edf53ebb17a192b49eb3afec95322d191f2acd1"
-
-[[projects]]
-  branch = "master"
   digest = "1:13f3d1b082bd8b53094e9276981c1e6d80371ba8985ace755f00d48ba25ce075"
   name = "golang.org/x/crypto"
   packages = [
@@ -132,7 +124,6 @@
     "github.com/docker/machine/libmachine/ssh",
     "github.com/docker/machine/libmachine/state",
     "github.com/stretchr/testify/assert",
-    "github.com/zhaog918/docker-machine-driver-fusion/drivers/fusion",
     "golang.org/x/crypto/ssh",
   ]
   solver-name = "gps-cdcl"
