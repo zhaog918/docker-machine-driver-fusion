@@ -188,26 +188,27 @@ func (d *Driver) GetIP() (string, error) {
 		return "", drivers.ErrHostIsNotRunning
 	}
 
-	// determine MAC address for VM
-	// macaddr, err := d.getMacAddressFromVmx()
-	// if err != nil {
-	// 	return "", err
-	// }
+	//determine MAC address for VM
+	macaddr, err := d.getMacAddressFromVmx()
+	if err != nil {
+		return "", err
+	}
 
-	// attempt to find the address in the vmnet configuration
-	// if ip, err := d.getIPfromVmnetConfiguration(macaddr); err == nil {
-	// 	return ip, err
-	// }
-
-	// address not found in vmnet so look for a DHCP lease
-	// ip, err := d.getIPfromDHCPLease(macaddr)
-	// if err != nil {
-	// 	return "", err
-	// }
-
-	ip, _, err := vmrun("getGuestIPAddress", d.vmxPath())
-	if err == nil {
+	//attempt to find the address using vmrun
+	if ip, err := d.getIPfromVmrun(); err == nil {
+		log.Debugf("Get IP Address From vmrun: %s", ip)
 		return ip, err
+	}
+
+	//attempt to find the address in the vmnet configuration
+	if ip, err := d.getIPfromVmnetConfiguration(macaddr); err == nil {
+		return ip, err
+	}
+
+	//address not found in vmnet so look for a DHCP lease
+	ip, err := d.getIPfromDHCPLease(macaddr)
+	if err != nil {
+		return "", err
 	}
 
 	return ip, nil
@@ -304,6 +305,7 @@ func (d *Driver) Create() error {
 
 		if ip != "" {
 			log.Debugf("Got an ip: %s", ip)
+
 			conn, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%d", ip, 22), time.Duration(2*time.Second))
 			if err != nil {
 				log.Debugf("SSH Daemon not responding yet: %s", err)
@@ -537,178 +539,190 @@ func (d *Driver) getMacAddressFromVmx() (string, error) {
 	return macaddr, nil
 }
 
-// func (d *Driver) getIPfromVmnetConfiguration(macaddr string) (string, error) {
+func (d *Driver) getIPfromVmnetConfiguration(macaddr string) (string, error) {
 
-// 	// DHCP lease table for NAT vmnet interface
-// 	confFiles, _ := filepath.Glob("/Library/Preferences/VMware Fusion/vmnet*/dhcpd.conf")
-// 	for _, conffile := range confFiles {
-// 		log.Debugf("Trying to find IP address in configuration file: %s", conffile)
-// 		if ipaddr, err := d.getIPfromVmnetConfigurationFile(conffile, macaddr); err == nil {
-// 			return ipaddr, err
-// 		}
-// 	}
+	// DHCP lease table for NAT vmnet interface
+	confFiles, _ := filepath.Glob("/Library/Preferences/VMware Fusion/vmnet*/dhcpd.conf")
+	for _, conffile := range confFiles {
+		log.Debugf("Trying to find IP address in configuration file: %s", conffile)
+		if ipaddr, err := d.getIPfromVmnetConfigurationFile(conffile, macaddr); err == nil {
+			return ipaddr, err
+		}
+	}
 
-// 	return "", fmt.Errorf("IP not found for MAC %s in vmnet configuration files", macaddr)
-// }
+	return "", fmt.Errorf("IP not found for MAC %s in vmnet configuration files", macaddr)
+}
 
-// func (d *Driver) getIPfromVmnetConfigurationFile(conffile, macaddr string) (string, error) {
-// 	var conffh *os.File
-// 	var confcontent []byte
+func (d *Driver) getIPfromVmrun() (string, error) {
+	log.Debugf("Trying to Get IP address From vmrun getGuestIPAddress")
+	vmrun("-gu", d.SSHUser, "-gp", d.SSHPassword, "runProgramInGuest", d.vmxPath(), "/sbin/ip", "address", "show")
+	vmrun("checkToolsState", d.vmxPath())
+	ipaddr, _, err := vmrun("getGuestIPAddress", d.vmxPath())
+	ipaddr = strings.TrimSpace(ipaddr)
+	if err == nil {
+		return ipaddr, err
+	}
+	return "", fmt.Errorf("IP not found fromt vmrun getGuestIPAddress")
+}
 
-// 	var currentip string
-// 	var lastipmatch string
-// 	var lastmacmatch string
+func (d *Driver) getIPfromVmnetConfigurationFile(conffile, macaddr string) (string, error) {
+	var conffh *os.File
+	var confcontent []byte
 
-// 	var err error
+	var currentip string
+	var lastipmatch string
+	var lastmacmatch string
 
-// 	if conffh, err = os.Open(conffile); err != nil {
-// 		return "", err
-// 	}
-// 	defer conffh.Close()
+	var err error
 
-// 	if confcontent, err = ioutil.ReadAll(conffh); err != nil {
-// 		return "", err
-// 	}
+	if conffh, err = os.Open(conffile); err != nil {
+		return "", err
+	}
+	defer conffh.Close()
 
-// 	// find all occurrences of 'host .* { .. }' and extract
-// 	// out of the inner block the MAC and IP addresses
+	if confcontent, err = ioutil.ReadAll(conffh); err != nil {
+		return "", err
+	}
 
-// 	// key = MAC, value = IP
-// 	m := make(map[string]string)
+	// find all occurrences of 'host .* { .. }' and extract
+	// out of the inner block the MAC and IP addresses
 
-// 	// Begin of a host block, that contains the IP, MAC
-// 	hostbegin := regexp.MustCompile(`^host (.+?) {`)
-// 	// End of a host block
-// 	hostend := regexp.MustCompile(`^}`)
+	// key = MAC, value = IP
+	m := make(map[string]string)
 
-// 	// Get the IP address.
-// 	ip := regexp.MustCompile(`^\s*fixed-address (.+?);$`)
-// 	// Get the MAC address associated.
-// 	mac := regexp.MustCompile(`^\s*hardware ethernet (.+?);$`)
+	// Begin of a host block, that contains the IP, MAC
+	hostbegin := regexp.MustCompile(`^host (.+?) {`)
+	// End of a host block
+	hostend := regexp.MustCompile(`^}`)
 
-// 	// we use a block depth so that just in case inner blocks exists
-// 	// we are not being fooled by them
-// 	blockdepth := 0
-// 	for _, line := range strings.Split(string(confcontent), "\n") {
+	// Get the IP address.
+	ip := regexp.MustCompile(`^\s*fixed-address (.+?);$`)
+	// Get the MAC address associated.
+	mac := regexp.MustCompile(`^\s*hardware ethernet (.+?);$`)
 
-// 		if matches := hostbegin.FindStringSubmatch(line); matches != nil {
-// 			blockdepth = blockdepth + 1
-// 			continue
-// 		}
+	// we use a block depth so that just in case inner blocks exists
+	// we are not being fooled by them
+	blockdepth := 0
+	for _, line := range strings.Split(string(confcontent), "\n") {
 
-// 		// we are only in interested in endings if we in a block. Otherwise we will count
-// 		// ending of non host blocks as well
-// 		if matches := hostend.FindStringSubmatch(line); blockdepth > 0 && matches != nil {
-// 			blockdepth = blockdepth - 1
+		if matches := hostbegin.FindStringSubmatch(line); matches != nil {
+			blockdepth = blockdepth + 1
+			continue
+		}
 
-// 			if blockdepth == 0 {
-// 				// add data
-// 				m[lastmacmatch] = lastipmatch
+		// we are only in interested in endings if we in a block. Otherwise we will count
+		// ending of non host blocks as well
+		if matches := hostend.FindStringSubmatch(line); blockdepth > 0 && matches != nil {
+			blockdepth = blockdepth - 1
 
-// 				// reset all temp var holders
-// 				lastipmatch = ""
-// 				lastmacmatch = ""
-// 			}
+			if blockdepth == 0 {
+				// add data
+				m[lastmacmatch] = lastipmatch
 
-// 			continue
-// 		}
+				// reset all temp var holders
+				lastipmatch = ""
+				lastmacmatch = ""
+			}
 
-// 		// only if we are within the first level of a block
-// 		// we are looking for addresses to extract
-// 		if blockdepth == 1 {
-// 			if matches := ip.FindStringSubmatch(line); matches != nil {
-// 				lastipmatch = matches[1]
-// 				continue
-// 			}
+			continue
+		}
 
-// 			if matches := mac.FindStringSubmatch(line); matches != nil {
-// 				lastmacmatch = strings.ToLower(matches[1])
-// 				continue
-// 			}
-// 		}
-// 	}
+		// only if we are within the first level of a block
+		// we are looking for addresses to extract
+		if blockdepth == 1 {
+			if matches := ip.FindStringSubmatch(line); matches != nil {
+				lastipmatch = matches[1]
+				continue
+			}
 
-// 	log.Debugf("Following IPs found %s", m)
+			if matches := mac.FindStringSubmatch(line); matches != nil {
+				lastmacmatch = strings.ToLower(matches[1])
+				continue
+			}
+		}
+	}
 
-// 	// map is filled to now lets check if we have a MAC associated to an IP
-// 	currentip, ok := m[strings.ToLower(macaddr)]
+	log.Debugf("Following IPs found %s", m)
 
-// 	if !ok {
-// 		return "", fmt.Errorf("IP not found for MAC %s in vmnet configuration", macaddr)
-// 	}
+	// map is filled to now lets check if we have a MAC associated to an IP
+	currentip, ok := m[strings.ToLower(macaddr)]
 
-// 	log.Debugf("IP found in vmnet configuration file: %s", currentip)
+	if !ok {
+		return "", fmt.Errorf("IP not found for MAC %s in vmnet configuration", macaddr)
+	}
 
-// 	return currentip, nil
+	log.Debugf("IP found in vmnet configuration file: %s", currentip)
 
-// }
+	return currentip, nil
 
-// func (d *Driver) getIPfromDHCPLease(macaddr string) (string, error) {
+}
 
-// 	// DHCP lease table for NAT vmnet interface
-// 	leasesFiles, _ := filepath.Glob("/var/db/vmware/*.leases")
-// 	for _, dhcpfile := range leasesFiles {
-// 		log.Debugf("Trying to find IP address in leases file: %s", dhcpfile)
-// 		if ipaddr, err := d.getIPfromDHCPLeaseFile(dhcpfile, macaddr); err == nil {
-// 			return ipaddr, err
-// 		}
-// 	}
+func (d *Driver) getIPfromDHCPLease(macaddr string) (string, error) {
 
-// 	return "", fmt.Errorf("IP not found for MAC %s in DHCP leases", macaddr)
-// }
+	// DHCP lease table for NAT vmnet interface
+	leasesFiles, _ := filepath.Glob("/var/db/vmware/*.leases")
+	for _, dhcpfile := range leasesFiles {
+		log.Debugf("Trying to find IP address in leases file: %s", dhcpfile)
+		if ipaddr, err := d.getIPfromDHCPLeaseFile(dhcpfile, macaddr); err == nil {
+			return ipaddr, err
+		}
+	}
 
-// func (d *Driver) getIPfromDHCPLeaseFile(dhcpfile, macaddr string) (string, error) {
+	return "", fmt.Errorf("IP not found for MAC %s in DHCP leases", macaddr)
+}
 
-// 	var dhcpfh *os.File
-// 	var dhcpcontent []byte
-// 	var lastipmatch string
-// 	var currentip string
-// 	var lastleaseendtime time.Time
-// 	var currentleadeendtime time.Time
-// 	var err error
+func (d *Driver) getIPfromDHCPLeaseFile(dhcpfile, macaddr string) (string, error) {
 
-// 	if dhcpfh, err = os.Open(dhcpfile); err != nil {
-// 		return "", err
-// 	}
-// 	defer dhcpfh.Close()
+	var dhcpfh *os.File
+	var dhcpcontent []byte
+	var lastipmatch string
+	var currentip string
+	var lastleaseendtime time.Time
+	var currentleadeendtime time.Time
+	var err error
 
-// 	if dhcpcontent, err = ioutil.ReadAll(dhcpfh); err != nil {
-// 		return "", err
-// 	}
+	if dhcpfh, err = os.Open(dhcpfile); err != nil {
+		return "", err
+	}
+	defer dhcpfh.Close()
 
-// 	// Get the IP from the lease table.
-// 	leaseip := regexp.MustCompile(`^lease (.+?) {$`)
-// 	// Get the lease end date time.
-// 	leaseend := regexp.MustCompile(`^\s*ends \d (.+?);$`)
-// 	// Get the MAC address associated.
-// 	leasemac := regexp.MustCompile(`^\s*hardware ethernet (.+?);$`)
+	if dhcpcontent, err = ioutil.ReadAll(dhcpfh); err != nil {
+		return "", err
+	}
 
-// 	for _, line := range strings.Split(string(dhcpcontent), "\n") {
+	// Get the IP from the lease table.
+	leaseip := regexp.MustCompile(`^lease (.+?) {$`)
+	// Get the lease end date time.
+	leaseend := regexp.MustCompile(`^\s*ends \d (.+?);$`)
+	// Get the MAC address associated.
+	leasemac := regexp.MustCompile(`^\s*hardware ethernet (.+?);$`)
 
-// 		if matches := leaseip.FindStringSubmatch(line); matches != nil {
-// 			lastipmatch = matches[1]
-// 			continue
-// 		}
+	for _, line := range strings.Split(string(dhcpcontent), "\n") {
 
-// 		if matches := leaseend.FindStringSubmatch(line); matches != nil {
-// 			lastleaseendtime, _ = time.Parse("2006/01/02 15:04:05", matches[1])
-// 			continue
-// 		}
+		if matches := leaseip.FindStringSubmatch(line); matches != nil {
+			lastipmatch = matches[1]
+			continue
+		}
 
-// 		if matches := leasemac.FindStringSubmatch(line); matches != nil && matches[1] == macaddr && currentleadeendtime.Before(lastleaseendtime) {
-// 			currentip = lastipmatch
-// 			currentleadeendtime = lastleaseendtime
-// 		}
-// 	}
+		if matches := leaseend.FindStringSubmatch(line); matches != nil {
+			lastleaseendtime, _ = time.Parse("2006/01/02 15:04:05", matches[1])
+			continue
+		}
 
-// 	if currentip == "" {
-// 		return "", fmt.Errorf("IP not found for MAC %s in DHCP leases", macaddr)
-// 	}
+		if matches := leasemac.FindStringSubmatch(line); matches != nil && matches[1] == macaddr && currentleadeendtime.Before(lastleaseendtime) {
+			currentip = lastipmatch
+			currentleadeendtime = lastleaseendtime
+		}
+	}
 
-// 	log.Debugf("IP found in DHCP lease table: %s", currentip)
+	if currentip == "" {
+		return "", fmt.Errorf("IP not found for MAC %s in DHCP leases", macaddr)
+	}
 
-// 	return currentip, nil
-// }
+	log.Debugf("IP found in DHCP lease table: %s", currentip)
+
+	return currentip, nil
+}
 
 func (d *Driver) publicSSHKeyPath() string {
 	return d.GetSSHKeyPath() + ".pub"
