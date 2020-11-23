@@ -8,6 +8,7 @@ to be installed on your host. Earlier versions of Fusion might still work
 with this driver, but it's not officially supported.
 
 > **The main difference is:**
+> Support for macOS Big Sur and fusion 12.1
 
 > Extracted from docker-machine project
 
